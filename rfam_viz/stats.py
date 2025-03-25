@@ -32,13 +32,14 @@ class FamilyStats:
     var_len : List[str]
     max_var : List[int]
     avg_size : List[float]
-    
+    disrupt_score : List[float]
+    prominent_disrupt : List[float]
 
 @dataclass
 class GapDist:
     all_dist : List[List[float]]
     family : List[str]
-    disrupt_score : List[float]
+    
 
 def get_stats(msa):
 
@@ -57,32 +58,32 @@ def freq_gaps_msa(family_record : Family, famstats : FamilyStats, gapdist : GapD
         for index, elt in enumerate(seq):
             if elt == '-':
                 gapcount[index] += 1
+            else:
+                all_disrupt_score[i, index] = 1.
             if elt != family_record.consensus_seq[index] and family_record.consensus_seq[index] == '-':
                 hamming += 1
-            elif elt != '-':
-                all_disrupt_score[i, index] = 1
-        
+
         all_freq.append(seq.count('-')/size)
         all_val.append(hamming)
         seqlen.append(len(re.sub('-', "", str(seq))))
 
     if gapcount.sum() == 0 or len(family_record.msa) <= 50:
         return famstats, gapdist
-    
+
     gapcount = gapcount/gapcount.sum() 
-    all_disrupt_score = all_disrupt_score * gapcount
-    all_disrupt_score = all_disrupt_score.sum(axis=1)
+    all_disrupt_score = all_disrupt_score @ gapcount
+    disrupt_score = (all_disrupt_score.max()-all_disrupt_score.min())/np.std(all_disrupt_score)
+    prominent_disruption = [i for i in all_disrupt_score if abs(i - np.mean(all_disrupt_score)) > 2*np.std(all_disrupt_score)]
 
     gapcount.sort()
     gapdist.all_dist.append(gapcount)
     gapdist.family.append(family_record.family)
-    gapdist.disrupt_score.append(all_disrupt_score)
 
     avg = np.average(seqlen)
     maxlen = max(seqlen)
     seqlen = [elt/maxlen for elt in seqlen]
     std = np.std(all_val)
-    prominent = len([i for i in all_val if abs(i - np.mean(all_val)) > 2*std])
+    prominent = [i for i in all_val if abs(i - np.mean(all_val)) > 2*std]
 
     famstats.family.append(family_record.family)
     famstats.num_seq.append(len(family_record.msa))
@@ -91,11 +92,13 @@ def freq_gaps_msa(family_record : Family, famstats : FamilyStats, gapdist : GapD
     famstats.gap_freq_std.append(np.std(all_freq))
     famstats.gap_per_seq.append(np.mean(all_val))
     famstats.gps_std.append(std)
-    famstats.prominent_fraction.append(prominent/len(family_record.msa))
+    famstats.prominent_fraction.append(len(prominent)/len(family_record.msa))
     famstats.gaps_per_seq_pf.append(np.mean(prominent))
     famstats.var_len.append(np.std(seqlen))
     famstats.max_var.append(max(seqlen) - min(seqlen))
     famstats.avg_size.append(avg)
+    famstats.disrupt_score.append(disrupt_score)
+    famstats.prominent_disrupt.append(np.mean(prominent_disruption))
     #print(family_record.family, max(seqlen), min(seqlen))
     return famstats, gapdist
 
@@ -156,9 +159,7 @@ def get_outliers(matdist : np.matrix, gapdist : GapDist, min_prominence : float 
 
     homogeneous = [chunks_list[split] for split in homogeneous]
     
-    disruption_dist_homogenous = get_disruption_dist(disruption_score=gapdist.disrupt_score)
-    disruption_dist_outliers = {gapdist.family[i]:gapdist.disrupt_score[i] for i in highest_values_indices}
-    return outliers, homogeneous, disruption_dist_homogenous, disruption_dist_outliers
+    return outliers, homogeneous
 
 
 def do_stats(family_record : Family, famstats : FamilyStats, gapdist : GapDist):

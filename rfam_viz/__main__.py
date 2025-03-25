@@ -41,11 +41,13 @@ if __name__ == "__main__":
         var_len=[],
         max_var=[],
         avg_size=[],
+        disrupt_score=[],
+        prominent_disrupt=[]
     )
     init_gapdist = stats.GapDist(
         all_dist=[],
         family=[],
-        disrupt_score=[]
+        
     )
     for index, (family_record, num_fam) in enumerate(seqload.load_fam(fam_ali_file=data)):
         utils.progressbar(iteration=index, total=num_fam)
@@ -54,7 +56,7 @@ if __name__ == "__main__":
             exit(0)
 
     matdist = stats.distance_gap(gapdist=gapdist)
-    outliers, homogeneous, disruption_dist_homogenous, disruption_dist_outliers = stats.get_outliers(matdist=matdist, gapdist=gapdist)
+    outliers, homogeneous= stats.get_outliers(matdist=matdist, gapdist=gapdist)
 
     df = pd.DataFrame(data=fam_stats.__dict__)
     df = df[df["num_seq"] > 50]
@@ -64,6 +66,4 @@ if __name__ == "__main__":
                           matdist=matdist, 
                           outliers=outliers, 
                           homogeneous=homogeneous, 
-                          figdir=outfig, 
-                          disruption_dist_homogenous=disruption_dist_homogenous, 
-                          disruption_dist_outliers=disruption_dist_outliers)
+                          figdir=outfig)

@@ -130,13 +130,51 @@ def disruption_score_display(disruption_dist_outliers : Dict[str, List[float]], 
     fig.savefig(pdf, format="pdf")
     plt.close(fig)
 
+def gaps_origin(df : pd.DataFrame, pdf):
+    fig, axes = plt.subplots(2, 2, figsize=(13, 5))
+    axes= axes.flat
+
+    sns.scatterplot(data=df, x='gap_per_seq', y="avg_size", ax=axes[0])
+    sns.scatterplot(data=df, x='gps_std', y="avg_size", ax=axes[1])
+    sns.scatterplot(data=df, x='prominent_fraction', y="avg_size", ax=axes[2])
+    sns.scatterplot(data=df, x='gaps_per_seq_pf', y="avg_size", ax=axes[3])
+
+    axes[0].set_title('Correlation between the number of gaps created by a sequence in a MSA\nand the average sequence size')
+    axes[1].set_title('Correlation of the standard deviation')
+    axes[2].set_title('Correlation between the size of a prominent fraction\nand the average sequence size')
+    axes[3].set_title('Correlation between the number of gaps created by the sequences\nof the prominent fraction and the average sequence size')
+    axes[0].set_xscale('log')
+    axes[1].set_xscale('log')
+    axes[2].set_xscale('log')
+    axes[3].set_xscale('log')
+    axes[0].set_yscale('log')
+    axes[1].set_yscale('log')
+    axes[2].set_yscale('log')
+    axes[3].set_yscale('log')
+    fig.subplots_adjust(wspace=0.5, hspace=0.5)
+    fig.savefig(pdf, format='pdf')
+    plt.close(fig)
+
+def seq_disruption(df : pd.DataFrame, pdf):
+    fig, axes = plt.subplots(1, 2, figsize=(13, 5))
+    axes= axes.flat
+
+    sns.scatterplot(data=df, x='disrupt_score', y="avg_size", ax=axes[0])
+    sns.scatterplot(data=df, x='prominent_disrupt', y="avg_size", ax=axes[1])
+
+
+    axes[0].set_title('Correlation between a family disruption score\nand the average sequence size')
+    axes[1].set_title('Correlation between a family disruption score\nand the gaps creation in the sequences prominent fraction')
+
+    fig.subplots_adjust(wspace=0.5, hspace=0.5)
+    fig.savefig(pdf, format='pdf')
+    plt.close(fig)
+
 def make_overview(df : pd.DataFrame, 
                   matdist : np.matrix, 
                   outliers : Dict[str, np.ndarray], 
                   homogeneous : List[np.ndarray], 
-                  figdir : str,
-                  disruption_dist_homogenous,
-                  disruption_dist_outliers):
+                  figdir : str):
     pdf = bpdf.PdfPages(os.path.join(figdir, "EDA_1_global_barplot.pdf"))
     
     for col in df.columns:
@@ -172,12 +210,13 @@ def make_overview(df : pd.DataFrame,
     gap_fraction(df, pdf=pdf)
     max_var_lenseq(df, pdf=pdf)
     scatter_corr(df=df, pdf=pdf)
+    gaps_origin(df=df, pdf=pdf)
+    seq_disruption(df=df, pdf=pdf)
     pdf.close()
 
     pdf = bpdf.PdfPages(os.path.join(figdir, "EDA_3_distance.pdf"))
     gap_distribution_differences(matdist=matdist, pdf=pdf)
     show_outliers_dist(outliers=outliers, pdf=pdf)
     show_consensus_dist(homogenous=homogeneous, pdf=pdf)
-    disruption_score_display(disruption_dist_outliers=disruption_dist_outliers, pdf=pdf)
     pdf.close()
 
