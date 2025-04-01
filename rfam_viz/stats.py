@@ -12,11 +12,13 @@ import numpy as np
 from dataclasses import dataclass
 import matplotlib.pyplot as plt
 import scipy.signal
+import torch
 
 #########################################################
 #                      Own modules                      #
 #########################################################
 from rfam_viz.loader import Family
+import rfam_viz.loader as loader
 
 @dataclass
 class FamilyStats:
@@ -34,6 +36,7 @@ class FamilyStats:
     avg_size : List[float]
     disrupt_score : List[float]
     prominent_disrupt : List[float]
+    concomitance_score: List[float]
 
 @dataclass
 class GapDist:
@@ -41,9 +44,6 @@ class GapDist:
     family : List[str]
     
 
-def get_stats(msa):
-
-    pass
 
 def freq_gaps_msa(family_record : Family, famstats : FamilyStats, gapdist : GapDist) -> float:
     all_val = []
@@ -99,8 +99,38 @@ def freq_gaps_msa(family_record : Family, famstats : FamilyStats, gapdist : GapD
     famstats.avg_size.append(avg)
     famstats.disrupt_score.append(disrupt_score)
     famstats.prominent_disrupt.append(np.mean(prominent_disruption))
-    #print(family_record.family, max(seqlen), min(seqlen))
+    famstats.concomitance_score.append(cc_gap_score(family_record=family_record))
     return famstats, gapdist
+
+
+def cc_gap_score(family_record : Family):
+    mat = loader.DatasetDCA().get_format(seqlist=family_record.msa)
+    N, _, _ = mat.shape
+    fi = get_freq_single_point(data=mat)
+    fij = get_freq_two_points(data=mat)
+
+    MI = fij * torch.log2((fi*fi)/fij)
+    MI = torch.where(torch.isnan(MI), torch.tensor(0, dtype=torch.float32), MI).sum()/N
+    return -MI.item()
+
+
+def get_freq_single_point(data, weights=None) -> torch.Tensor:
+    if weights is not None:
+        return (data * weights[:, None, None]).sum(dim=0)
+    else:
+        return data.mean(dim=0)
+
+
+def get_freq_two_points(data, weights=None) -> torch.Tensor:
+    M, L, q = data.shape
+    data_oh = data.reshape(M, q * L)
+    if weights is not None:
+        we_data_oh = data_oh * weights[:, None]
+    else:
+        we_data_oh = data_oh * 1./M
+    fij = we_data_oh.T @ data_oh  # Compute weighted sum
+    return fij.reshape(L, q, L, q)
+
 
 def split_list(lst : List[np.ndarray], num_lists):
     # Calculate the size of each chunk, and any leftover items

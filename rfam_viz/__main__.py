@@ -42,7 +42,8 @@ if __name__ == "__main__":
         max_var=[],
         avg_size=[],
         disrupt_score=[],
-        prominent_disrupt=[]
+        prominent_disrupt=[],
+        concomitance_score=[]
     )
     init_gapdist = stats.GapDist(
         all_dist=[],

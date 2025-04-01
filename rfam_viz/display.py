@@ -180,6 +180,18 @@ def make_overview(df : pd.DataFrame,
     for col in df.columns:
         if col == 'family':
             continue
+        if col == "concomitance_score":
+            fig, axes = plt.subplots(1, 1, figsize=(13, 5))
+
+            sns.barplot(df,x = df.index, y = col, ax=axes, errorbar=('ci', 95))
+
+            axes.set_yscale("log")
+            fig.suptitle(f'Numeric Feature : {col}', fontsize=16, fontweight='bold')
+            fig.subplots_adjust(wspace=0.2)
+            fig.savefig(pdf, format='pdf')
+            plt.close(fig)
+            continue
+
         fig, axes = plt.subplots(1, 1, figsize=(13, 5))
 
         sns.barplot(df,x = df.index, y = col, ax=axes, errorbar=('ci', 95))
