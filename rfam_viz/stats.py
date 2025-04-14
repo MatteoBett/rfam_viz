@@ -105,12 +105,12 @@ def freq_gaps_msa(family_record : Family, famstats : FamilyStats, gapdist : GapD
 
 def cc_gap_score(family_record : Family):
     mat = loader.DatasetDCA().get_format(seqlist=family_record.msa)
-    N, _, _ = mat.shape
+    N, L, _ = mat.shape
     fi = get_freq_single_point(data=mat)
     fij = get_freq_two_points(data=mat)
 
     MI = fij * torch.log2((fi*fi)/fij)
-    MI = torch.where(torch.isnan(MI), torch.tensor(0, dtype=torch.float32), MI).sum()/N
+    MI = torch.where(torch.isnan(MI), torch.tensor(0, dtype=torch.float32), MI).mean()
     return -MI.item()
 
 

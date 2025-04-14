@@ -113,6 +113,15 @@ def scatter_corr(df : pd.DataFrame, pdf):
     fig.savefig(pdf, format='pdf')
     plt.close(fig)
 
+    fig, axes = plt.subplots(1, 1, figsize=(8, 8))
+    sns.scatterplot(data=df, x='avg_size', y="gap_freq", ax=axes)
+    fig.suptitle("Gap frequency depending on sequence average size")
+    fig.subplots_adjust(wspace=0.5, hspace=0.5)
+    axes.set_title('Gap fraction depending on the average sequence size')
+    fig.savefig(pdf, format='pdf')
+    plt.close(fig)
+
+
 
 def disruption_score_display(disruption_dist_outliers : Dict[str, List[float]], pdf):
     col = len(disruption_dist_outliers)//2
@@ -181,7 +190,7 @@ def make_overview(df : pd.DataFrame,
         if col == 'family':
             continue
         if col == "concomitance_score":
-            fig, axes = plt.subplots(1, 1, figsize=(13, 5))
+            fig, axes = plt.subplots(1, 1, figsize=(8, 8))
 
             sns.barplot(df,x = df.index, y = col, ax=axes, errorbar=('ci', 95))
 
@@ -191,6 +200,52 @@ def make_overview(df : pd.DataFrame,
             fig.savefig(pdf, format='pdf')
             plt.close(fig)
             continue
+
+        if col == "avg_size":
+            fig, axes = plt.subplots(1, 1, figsize=(8, 8))
+
+            sns.histplot(df, x = col, kde = True, multiple="dodge", ax=axes)
+            axes.vlines(x=193, ymin=0, ymax=50, colors='r', label='Azoarcus')
+            axes.set_ylabel("Count families")
+            fig.suptitle(f'Rfam families distribution depending on their sequences average size', fontsize=16, fontweight='bold')
+            axes.set_xlabel("\% of sequence Length")
+            fig.subplots_adjust(wspace=0.2)
+            axes.legend()
+            fig.savefig(pdf, format='pdf')
+            plt.close(fig)
+            continue
+
+        if col == "gap_freq":
+            fig, axes = plt.subplots(1, 1, figsize=(8, 8))
+
+            sns.histplot(df, x = col, kde = True, multiple="dodge", ax=axes)
+
+            axes.set_ylabel("Count families")
+            axes.vlines(x=0.28, ymin=0, ymax=50, colors='r', label='Azoarcus')
+            axes.set_xlabel("\% of sequence Length")
+            fig.suptitle(f'Rfam families distribution depending on the gap frequencies', fontsize=16, fontweight='bold')
+            fig.subplots_adjust(wspace=0.2)
+            axes.legend()
+            fig.savefig(pdf, format='pdf')
+            plt.close(fig)
+            continue
+
+        if col == "var_len":
+            fig, axes = plt.subplots(1, 1, figsize=(8, 8))
+
+            sns.histplot(df, x = col, kde = True, multiple="dodge", ax=axes)
+
+            axes.set_ylabel("Count families")
+            axes.vlines(x=0.1, ymin=0, ymax=50, colors='r', label='Azoarcus')
+            axes.set_xlabel("\% of sequence Length")
+            
+            fig.suptitle(f'Rfam families distribution for maximum variation of sequences size', fontsize=16, fontweight='bold')
+            fig.subplots_adjust(wspace=0.2)
+            axes.legend()
+            fig.savefig(pdf, format='pdf')
+            plt.close(fig)
+            continue
+
 
         fig, axes = plt.subplots(1, 1, figsize=(13, 5))
 

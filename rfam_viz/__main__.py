@@ -51,7 +51,7 @@ if __name__ == "__main__":
         
     )
     for index, (family_record, num_fam) in enumerate(seqload.load_fam(fam_ali_file=data)):
-        utils.progressbar(iteration=index, total=num_fam)
+        utils.progressbar(iteration=index+1, total=num_fam)
         fam_stats, gapdist = stats.do_stats(family_record=family_record, famstats=init_fam, gapdist=init_gapdist)
         if do_one:
             exit(0)
@@ -61,6 +61,7 @@ if __name__ == "__main__":
 
     df = pd.DataFrame(data=fam_stats.__dict__)
     df = df[df["num_seq"] > 50]
+    df = df[df["avg_size"] < 500]
 
     df = df.sort_values(by='avg_size', ascending=False)
     display.make_overview(df=df, 
