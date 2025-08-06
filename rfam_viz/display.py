@@ -38,7 +38,7 @@ def max_var_lenseq(df : pd.DataFrame, pdf):
 
     axes[0].set_title('Maximum variation depending on the average sequence size')
     axes[1].set_title('Maximum variation depending on the MSA length')
-
+    
     fig.suptitle("Maximum variation in gaps' number per sequence depending on MSA's and sequence average size")
     fig.subplots_adjust(wspace=0.2)
     fig.savefig(pdf, format='pdf')
@@ -89,6 +89,33 @@ def show_consensus_dist(homogenous : List[np.ndarray], pdf):
     plt.close(fig)
 
 def scatter_corr(df : pd.DataFrame, pdf):
+    tmp, ax = plt.subplots(1, 1, figsize=(10, 10))
+    sns.scatterplot(data=df, x='var_len', y="gap_freq", ax=ax)
+    ax.tick_params(axis='x', labelsize=16)
+    ax.tick_params(axis='y', labelsize=16)
+    ax.set_xlabel("$\sigma$ of sequences size per family", fontsize=20)
+    ax.set_ylabel("Family average Gaps frequency", fontsize=20)
+    ax.text(0.6, 0.9, r"$\rho = 0.56$", fontsize=16, transform=ax.transAxes)
+    ax.plot([0, df["var_len"].max()],[0,1], color="black")
+    ax.set_xlim(0,df["var_len"].max())
+    ax.set_ylim(0,1.0)
+
+    tmp.savefig(r'/home/mbettiati/LBE_MatteoBettiati/code/Rfam_viz/fig/corr_stdlen_gf.png', format='png', dpi=300)
+
+    tmp, ax = plt.subplots(1, 1, figsize=(10, 10))
+    sns.scatterplot(data=df, x='max_var', y="gap_freq", ax=ax)
+    ax.text(0.6, 0.9, r"$\rho = 0.76$", fontsize=16, transform=ax.transAxes)
+
+    ax.tick_params(axis='x', labelsize=16)
+    ax.tick_params(axis='y', labelsize=16)
+    ax.set_xlabel("Maximum variation of sequences size per family", fontsize=20)
+    ax.set_ylabel("Family average Gaps frequency", fontsize=20)
+    ax.plot([0,1],[0,1], color="black")
+    ax.set_xlim(0,1.0)
+    ax.set_ylim(0,1.0)
+    
+    tmp.savefig(r'/home/mbettiati/LBE_MatteoBettiati/code/Rfam_viz/fig/corr_maxvar_gf.png', format='png', dpi=300)
+
     fig, axes = plt.subplots(2, 2, figsize=(13, 5))
     axes= axes.flat
 
@@ -101,7 +128,7 @@ def scatter_corr(df : pd.DataFrame, pdf):
     axes[1].set_title('Gap fraction depending on the MSA length')
     axes[2].set_title('Variation of Gap fraction depending on average sequence size')
     axes[3].set_title('Variation of Gap fraction depending on sequences size standard deviation')
-
+    
     """    
     axes[0].set_xscale('log')
     axes[1].set_xscale('log')
@@ -115,10 +142,17 @@ def scatter_corr(df : pd.DataFrame, pdf):
 
     fig, axes = plt.subplots(1, 1, figsize=(8, 8))
     sns.scatterplot(data=df, x='avg_size', y="gap_freq", ax=axes)
-    fig.suptitle("Gap frequency depending on sequence average size")
+    axes.set_ylim(0, 1.0)
+    axes.tick_params(axis='x', labelsize=16)
+    axes.tick_params(axis='y', labelsize=16)
+    axes.set_xlabel("Average sequence size", fontsize=20)
+    axes.set_ylabel("Gap frequency", fontsize=20)
+    axes.plot([0, df["avg_size"].max()],[0,1], color="black")
+    axes.set_xlim(0,df["avg_size"].max())
+    axes.text(0.5, 0.9, r"$\rho = 0.3$", fontsize=16, transform=axes.transAxes)
     fig.subplots_adjust(wspace=0.5, hspace=0.5)
-    axes.set_title('Gap fraction depending on the average sequence size')
-    fig.savefig(pdf, format='pdf')
+    fig.tight_layout()
+    fig.savefig(r'/home/mbettiati/LBE_MatteoBettiati/code/Rfam_viz/fig/corr_size_avglen.png', format='png', dpi=300)
     plt.close(fig)
 
 
@@ -197,7 +231,7 @@ def make_overview(df : pd.DataFrame,
             axes.set_yscale("log")
             fig.suptitle(f'Numeric Feature : {col}', fontsize=16, fontweight='bold')
             fig.subplots_adjust(wspace=0.2)
-            fig.savefig(pdf, format='pdf')
+            fig.savefig(pdf, format='pdf', dpi=300)
             plt.close(fig)
             continue
 
@@ -206,12 +240,14 @@ def make_overview(df : pd.DataFrame,
 
             sns.histplot(df, x = col, kde = True, multiple="dodge", ax=axes)
             axes.vlines(x=193, ymin=0, ymax=50, colors='r', label='Azoarcus')
-            axes.set_ylabel("Count families")
-            fig.suptitle(f'Rfam families distribution depending on their sequences average size', fontsize=16, fontweight='bold')
-            axes.set_xlabel("\% of sequence Length")
+            axes.tick_params(axis='x', labelsize=16)
+            axes.tick_params(axis='y', labelsize=16)
+            axes.set_ylabel("Count families", fontsize=20)
+            axes.set_xlabel("Average sequences size", fontsize=20)
             fig.subplots_adjust(wspace=0.2)
-            axes.legend()
-            fig.savefig(pdf, format='pdf')
+            axes.legend(fontsize=16)
+            fig.tight_layout()
+            fig.savefig(r"/home/mbettiati/LBE_MatteoBettiati/code/Rfam_viz/fig/avg_size.png", format='png', dpi=300)
             plt.close(fig)
             continue
 
@@ -220,13 +256,15 @@ def make_overview(df : pd.DataFrame,
 
             sns.histplot(df, x = col, kde = True, multiple="dodge", ax=axes)
 
-            axes.set_ylabel("Count families")
+            axes.set_ylabel("Count families", fontsize=20)
             axes.vlines(x=0.28, ymin=0, ymax=50, colors='r', label='Azoarcus')
-            axes.set_xlabel("\% of sequence Length")
-            fig.suptitle(f'Rfam families distribution depending on the gap frequencies', fontsize=16, fontweight='bold')
+            axes.set_xlabel("% of sequence Length", fontsize=20)
+            axes.tick_params(axis='x', labelsize=16)
+            axes.tick_params(axis='y', labelsize=16)
             fig.subplots_adjust(wspace=0.2)
-            axes.legend()
-            fig.savefig(pdf, format='pdf')
+            axes.legend(fontsize=16)
+            fig.tight_layout()
+            fig.savefig(r'/home/mbettiati/LBE_MatteoBettiati/code/Rfam_viz/fig/gap_freq.png', format='png', dpi=300)
             plt.close(fig)
             continue
 
